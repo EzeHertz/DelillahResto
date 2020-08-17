@@ -1,8 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-const sequelize = require('../index'); //Objeto Sequelize
-const jwt = require('jsonwebtoken'); // JWT
+const sequelize = require('../index'); 
+const jwt = require('jsonwebtoken'); 
 const firma = 'miFirma';
 
 
@@ -62,43 +62,18 @@ const autenticarUsuario = (req, res, next) => {
     
 };
 
-function GetProductFromDB(id_prod){
-
-    try{
-        return sequelize.sequelize.query(`select * from productos where id_prod = ${id_prod}`,
-        {type: sequelize.sequelize.QueryTypes.SELECT}
-        )
-        .then(producto => {
-            console.log(producto[0]);
-            return producto[0];
-        });
-    }
-    catch(err){
-        return err;
-    }
-
-};
-
-function updateProductInDB(id_prod, nombre, descripcion, precio){
-
-    sequelize.sequelize.query(`update pedidos ${nombre}, ${descripcion}, ${precio} where id_prod = ${id_prod}`)
-
-};
-
-// Definicion de function middleware
-
-function middleware(req, res, next){
+function logAccesedPath(req, res, next){
     console.log(
         `Middleware logRequest: A las ${new Date()} usuario accedio a  la ruta ${req.path} `
     );
     next();
 };
 
-// Asignando funcion middleware para todas las rutas
-app.use(middleware);
+// Asignacion de middlewares
+app.use(logAccesedPath);
 app.use(bodyParser.json());
 
-// Definicion de rutas
+
 app.get('/', (req, res) => {
     res.status(200);
     
@@ -106,24 +81,16 @@ app.get('/', (req, res) => {
         WelcomeMessage: "Welcome to our API service",
         ServiceName: "Delillah Resto API",
         ServiceStatus: "Private",
-        SignIn: "localhost:3000/usuarios/signin",
-        LogIn: "localhost:3000/usuarios/login",
+        SignIn: "localhost:3000/usuarios/signup",
+        LogIn: "localhost:3000/usuarios/signin",
         ServerAdmin: "Eze Hertz"
     });
 });
 
-
-// sql.sequelize.authenticate().then(async() => {
-//     const query = 'select * from usuarios where id_usuario = 1';
-//     const [resultados] = await sql.sequelize.query(query, { raw:true });
-
-//     return resultados;   
-// })
+// DEFAULT ENDPOINTS
 
 
-// EndPoints de usuarios
-
-app.post('/usuarios/singin', (req, res) => {
+app.post('/usuarios/singup', (req, res) => {
     sequelize.sequelize.query(`insert into usuarios (nombreCompleto, email, tel, dirEnvio, userName, pass, esAdmin)
     values (?, ?, ?, ?, ?, ?, ?)`,
     {replacements: [req.body.nombreCompleto, req.body.email, req.body.tel, req.body.dirEnvio, req.body.userName, req.body.pass, req.body.esAdmin]}
@@ -133,7 +100,7 @@ app.post('/usuarios/singin', (req, res) => {
     });
 });
 
-app.post('/usuarios/login', (req, res) => {
+app.post('/usuarios/signin', (req, res) => {
     const {userName, pass} = req.body;
 
     validarUsuario(userName, pass)
@@ -150,55 +117,7 @@ app.post('/usuarios/login', (req, res) => {
 
 });
 
-app.get('/usuarios', autenticarUsuario, (req, res) => {
-
-    console.log(req.usuario.admin);
-
-    if(req.usuario.admin == 1){
-            sequelize.sequelize.query('select * from usuarios',
-        {type: sequelize.sequelize.QueryTypes.SELECT}
-        )
-        .then(resultados => {
-            res.status(200);
-            res.send(resultados);
-        });
-    }
-    else{
-        res.status(401)
-        res.json({Error: 'Unauthorized'});
-    }
-
-
-});
-
-app.get('/usuarios/:id', autenticarUsuario, (req, res) => {
-    const idUser = req.params.id;
-    sequelize.sequelize.query('select * from usuarios where id_usuario = :id ',
-    {replacements: {id: idUser}, type: sequelize.sequelize.QueryTypes.SELECT}
-    ).then(resultado => {
-        res.status(200);
-        res.send(resultado);
-    });
-});
-
-app.delete('/usuarios/:id', autenticarUsuario, (req, res) => {
-    
-    if(req.usuario.admin == 1){
-        const idUser = req.params.id;
-        sequelize.sequelize.query('delete from usuarios where id_usuario = :id',
-        { replacements: {id: idUser} } 
-        ).then(resultado => {
-            res.status(200);
-            res.send(`El usuario con id: ${idUser} se eliminó correctamente.`);
-        });
-    }
-    else{
-        res.status(401);
-        res.json({Error: 'Unauthorized'});
-    }
-});
-
-// EndPoints de productos
+// USER ENDPOINTS
 
 app.get('/productos', autenticarUsuario, (req, res) => {
     sequelize.sequelize.query('SELECT * FROM PRODUCTOS',
@@ -209,14 +128,23 @@ app.get('/productos', autenticarUsuario, (req, res) => {
     });
 });
 
-app.get('/productos/:id', autenticarUsuario, (req, res) => {
-    const idProd = req.params.id;
-    sequelize.sequelize.query('select * from productos where id_prod = :id ',
-    {replacements: {id: idProd}, type: sequelize.sequelize.QueryTypes.SELECT}
-    ).then(resultado => {
-        res.send(resultado);
-    });
+app.post('/pedidos/nuevo', autenticarUsuario, (req, res) => {
+
+    try{
+        sequelize.sequelize.query(`insert into pedidos values(id_pedido, 'nuevo', ?, curdate(), ?, ?, ?)`,
+        {replacements: [req.body.cantidad, req.body.forma_pago, req.usuario.id, req.body.id_prod]}
+        )
+        .then(pedidoRealizado => {
+            res.status(200);
+            res.send('Pedido realizado correctamente.');
+        });
+    }
+    catch(err){
+        res.send(err);
+    }
 });
+
+// ADMIN ENDPOINTS
 
 app.post('/productos', autenticarUsuario, (req, res) => {
     
@@ -270,22 +198,87 @@ app.put('/productos/:id', autenticarUsuario, (req, res) => {
     }
 });
 
-// EndPoints de pedidos
+app.put('/pedidos', autenticarUsuario, (req, res) => {
 
-app.post('/pedidos', autenticarUsuario, (req, res) => {
-    try{
-        sequelize.sequelize.query(`insert into pedidos values(id_pedido, 'nuevo', ?, curdate(), ?, ?, ?)`,
-        {replacements: [req.body.cantidad, req.body.forma_pago, req.usuario.id, req.body.id_prod]}
+    if(req.usuario.admin == 1){
+
+        const idPedido = req.body.id;
+        sequelize.sequelize.query('update pedidos set estado = :estado where id_pedido = :id_pedido',
+        {replacements: {estado: req.body.estado, id_pedido: idPedido}}
         )
-        .then(pedidoRealizado => {
-            res.status(200);
-            res.send('Pedido realizado correctamente.');
+        .then(pedidoActualizado => {
+            
+            res.json({pedidoActualizado: req.body});
         });
-    }
-    catch(err){
-        res.send(err);
+
+    }    
+    else{
+        res.status(401);
+        res.json({Error: 'Unauthorized'});
     }
 });
+
+
+app.get('/usuarios', autenticarUsuario, (req, res) => {
+
+    console.log(req.usuario.admin);
+
+    if(req.usuario.admin == 1){
+            sequelize.sequelize.query('select * from usuarios',
+        {type: sequelize.sequelize.QueryTypes.SELECT}
+        )
+        .then(resultados => {
+            res.status(200);
+            res.send(resultados);
+        });
+    }
+    else{
+        res.status(401)
+        res.json({Error: 'Unauthorized'});
+    }
+
+
+});
+
+app.get('/usuarios/:id', autenticarUsuario, (req, res) => {
+    const idUser = req.params.id;
+    sequelize.sequelize.query('select * from usuarios where id_usuario = :id ',
+    {replacements: {id: idUser}, type: sequelize.sequelize.QueryTypes.SELECT}
+    ).then(resultado => {
+        res.status(200);
+        res.send(resultado);
+    });
+});
+
+app.delete('/usuarios/:id', autenticarUsuario, (req, res) => {
+    
+    if(req.usuario.admin == 1){
+        const idUser = req.params.id;
+        sequelize.sequelize.query('delete from usuarios where id_usuario = :id',
+        { replacements: {id: idUser} } 
+        ).then(resultado => {
+            res.status(200);
+            res.send(`El usuario con id: ${idUser} se eliminó correctamente.`);
+        });
+    }
+    else{
+        res.status(401);
+        res.json({Error: 'Unauthorized'});
+    }
+});
+
+// EndPoints de productos
+
+app.get('/productos/:id', autenticarUsuario, (req, res) => {
+    const idProd = req.params.id;
+    sequelize.sequelize.query('select * from productos where id_prod = :id ',
+    {replacements: {id: idProd}, type: sequelize.sequelize.QueryTypes.SELECT}
+    ).then(resultado => {
+        res.send(resultado);
+    });
+});
+
+// EndPoints de pedidos
 
 app.get('/pedidos', autenticarUsuario, (req, res) => {
     

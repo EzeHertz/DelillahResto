@@ -1,0 +1,404 @@
+openapi: 3.0.0
+info:
+  title: Delillah Resto API
+  description: API
+  contact:
+    email: you@your-company.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/EzeHertz/DelillahRestoAPI/1.0.0
+  description: SwaggerHub API Auto Mocking
+paths:
+  /usuarios/signup:
+    post:
+      tags:
+      - usuarios
+      description: Crear un nuevo usuario
+      parameters:
+      - name: Usuario
+        in: query
+        description: Datos del usuario
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Usuario'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Usuario creado exitósamente"}'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+  /usuarios/login:
+    post:
+      tags:
+      - usuarios
+      description: Permite logear al usuario
+      parameters:
+      - name: Usuario
+        in: query
+        description: Datos del usuario
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Usuario_1'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Usuario logeado exitósamente"}'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+  /pedidos:
+    get:
+      tags:
+      - pedidos
+      description: Permite obtener lista de pedidos
+      responses:
+        "200":
+          description: successful request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/inline_response_200'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+    put:
+      tags:
+      - pedidos
+      description: Permite modificar el estado del pedido
+      parameters:
+      - name: Pedido
+        in: query
+        description: Datos del pedido
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Pedido'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Usuario logeado exitósamente"}'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+    post:
+      tags:
+      - pedidos
+      description: Permite generar un pedido
+      parameters:
+      - name: Pedidos
+        in: query
+        description: Datos del pedido
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Pedidos'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Usuario logeado exitósamente"}'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+  /productos:
+    get:
+      tags:
+      - productos
+      description: Permite obtener lista de productos
+      responses:
+        "200":
+          description: successful request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/inline_response_200_1'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+    put:
+      tags:
+      - productos
+      description: Permite modificar el estado del pedido
+      parameters:
+      - name: Producto
+        in: query
+        description: Datos del producto
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Producto'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Usuario logeado exitósamente"}'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+    post:
+      tags:
+      - productos
+      description: Permite crear productos en la base de datos
+      parameters:
+      - name: Producto
+        in: query
+        description: Crear nuevo producto
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Producto_1'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Producto creado exitósamente"}'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+    delete:
+      tags:
+      - productos
+      description: Permite eliminar productos de la base de datos
+      parameters:
+      - name: Producto
+        in: query
+        description: Eliminar producto
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Producto_2'
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Producto eliminado exitósamente"}'
+        "400":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: '{"message":"Error 404. request not found."}'
+components:
+  schemas:
+    Usuario:
+      type: object
+      properties:
+        NombreCompleto:
+          type: string
+          description: Nombre Completo
+          example: EzeHertz
+        email:
+          type: string
+          description: Email del usuario
+          example: usuario@mail.com
+        tel:
+          type: string
+          description: Telefono del usuario
+          example: "1500001111"
+        dirEnvio:
+          type: string
+          description: Direccion de envio
+          example: Calle Falsa 123
+        userName:
+          type: string
+          description: Nombre de usuario
+          example: NombreDeUsuario
+        pass:
+          type: string
+          description: Contraseña de usuario
+          example: 123asd
+    Usuario_1:
+      type: object
+      properties:
+        userName:
+          type: string
+          description: Nombre de usuario
+          example: NombreDeUsuario
+        pass:
+          type: string
+          description: Contraseña de usuario
+          example: 123asd
+    inline_response_200:
+      properties:
+        id_pedido:
+          type: integer
+          description: Id del pedido
+          example: 1
+        estado:
+          type: string
+          example: En proceso
+        cantidad:
+          type: integer
+          example: 4
+        hora:
+          type: string
+          example: 10:00
+        forma_pago:
+          type: boolean
+          example: false
+        id_usuario:
+          type: integer
+          example: 1
+        id_producto:
+          type: integer
+          example: 2
+    Pedido:
+      type: object
+      properties:
+        id_pedido:
+          type: integer
+          description: Id del pedido seleccionado
+          example: 2
+        estado:
+          type: string
+          description: Estado a setear
+          example: confirmado
+    Pedidos:
+      type: object
+      properties:
+        cantidad:
+          type: integer
+          description: Cantidad del producto seleccionado
+          example: 1
+        forma_pago:
+          type: integer
+          description: Forma de pago (efectivo 1 o tarjeta 2)
+          example: 1
+        id_producto:
+          type: integer
+          description: Id del producto seleccionado
+          example: 2
+    inline_response_200_1:
+      properties:
+        id:
+          type: integer
+          description: Id del producto
+          example: 1
+        nombre:
+          type: string
+          example: Hamburguesa completa
+        price:
+          type: number
+          format: float
+          example: 450
+        descripcion:
+          type: string
+          example: doble
+    Producto:
+      type: object
+      properties:
+        nombre:
+          type: string
+          description: Nombre del producto
+          example: Tapa arterias
+        descripcion:
+          type: string
+          description: Descripcion de producto
+          example: Dos hamburguesas con chedar y bacon
+        precio:
+          type: number
+          format: money
+          example: 450
+        id_prod:
+          type: integer
+          example: 1
+    Producto_1:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Id de producto
+          example: "1"
+        nombre:
+          type: string
+          description: Nombre del producto
+          example: Hamburguesa
+        precio:
+          type: integer
+          description: Precio del producto
+          example: 450
+        descripcion:
+          type: string
+          description: Descripcion del producto
+          example: Completa
+    Producto_2:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Id de producto
+          example: "1"

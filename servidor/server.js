@@ -87,8 +87,7 @@ app.get('/', (req, res) => {
     });
 });
 
-// DEFAULT ENDPOINTS
-
+// ENDPOINTS DE USUARIO
 
 app.post('/usuarios/singup', (req, res) => {
     sequelize.sequelize.query(`insert into usuarios (nombreCompleto, email, tel, dirEnvio, userName, pass, esAdmin)
@@ -117,7 +116,44 @@ app.post('/usuarios/signin', (req, res) => {
 
 });
 
-// USER ENDPOINTS
+app.get('/usuarios', autenticarUsuario, (req, res) => {
+
+    console.log(req.usuario.admin);
+
+    if(req.usuario.admin == 1){
+            sequelize.sequelize.query('select * from usuarios',
+        {type: sequelize.sequelize.QueryTypes.SELECT}
+        )
+        .then(resultados => {
+            res.status(200);
+            res.send(resultados);
+        });
+    }
+    else{
+        res.status(401)
+        res.json({Error: 'Unauthorized'});
+    }
+
+
+});
+
+app.delete('/usuarios', autenticarUsuario, (req, res) => {
+    
+    if(req.usuario.admin == 1){
+        sequelize.sequelize.query('delete from usuarios where id_usuario = :id',
+        { replacements: {id: req.params.id_usuario} } 
+        ).then(resultado => {
+            res.status(200);
+            res.send(`El usuario con id: ${idUser} se eliminó correctamente.`);
+        });
+    }
+    else{
+        res.status(401);
+        res.json({Error: 'Unauthorized'});
+    }
+});
+
+// CRUD DE PRODUCTOS
 
 app.get('/productos', autenticarUsuario, (req, res) => {
     sequelize.sequelize.query('SELECT * FROM PRODUCTOS',
@@ -128,23 +164,6 @@ app.get('/productos', autenticarUsuario, (req, res) => {
     });
 });
 
-app.post('/pedidos/nuevo', autenticarUsuario, (req, res) => {
-
-    try{
-        sequelize.sequelize.query(`insert into pedidos values(id_pedido, 'nuevo', ?, curdate(), ?, ?, ?)`,
-        {replacements: [req.body.cantidad, req.body.forma_pago, req.usuario.id, req.body.id_prod]}
-        )
-        .then(pedidoRealizado => {
-            res.status(200);
-            res.send('Pedido realizado correctamente.');
-        });
-    }
-    catch(err){
-        res.send(err);
-    }
-});
-
-// ADMIN ENDPOINTS
 
 app.post('/productos', autenticarUsuario, (req, res) => {
     
@@ -164,11 +183,10 @@ app.post('/productos', autenticarUsuario, (req, res) => {
     
 });
 
-app.delete('/productos/:id', autenticarUsuario, (req, res) => {
+app.delete('/productos', autenticarUsuario, (req, res) => {
     if(req.usuario.admin == 1){
-        const idProd = req.params.id;
         sequelize.sequelize.query(`Delete from productos where id_prod = :id`, 
-        {replacements: {id: idProd}}
+        {replacements: {id: req.body.id_prod}}
         ).then(resultado => {
             res.status(200);
             res.send(`Producto con id numero ${idProd} ha sido eliminado.`);
@@ -180,12 +198,12 @@ app.delete('/productos/:id', autenticarUsuario, (req, res) => {
     }
 });
 
-app.put('/productos/:id', autenticarUsuario, (req, res) => {
+app.put('/productos', autenticarUsuario, (req, res) => {
     
     if(req.usuario.admin == 1){
-        const idProd = req.params.id;
+        
         sequelize.sequelize.query('update productos set nombre = :nombre, descripcion = :descripcion, precio = :precio where id_prod = :id_prod',
-        {replacements: {nombre: req.body.nombre, descripcion: req.body.descripcion, precio: req.body.precio, id_prod: idProd}}
+        {replacements: {nombre: req.body.nombre, descripcion: req.body.descripcion, precio: req.body.precio, id_prod: req.body.id_prod}}
         )
         .then(productoActualizado => {
             
@@ -195,6 +213,23 @@ app.put('/productos/:id', autenticarUsuario, (req, res) => {
     else{
         res.status(401);
         res.json({Error: 'Unauthorized'});
+    }
+});
+
+// CRUD DE PEDIDOS
+app.post('/pedidos', autenticarUsuario, (req, res) => {
+
+    try{
+        sequelize.sequelize.query(`insert into pedidos values(id_pedido, 'nuevo', ?, curdate(), ?, ?, ?)`,
+        {replacements: [req.body.cantidad, req.body.forma_pago, req.usuario.id, req.body.id_prod]}
+        )
+        .then(pedidoRealizado => {
+            res.status(200);
+            res.send('Pedido realizado correctamente.');
+        });
+    }
+    catch(err){
+        res.send(err);
     }
 });
 
@@ -217,68 +252,6 @@ app.put('/pedidos', autenticarUsuario, (req, res) => {
         res.json({Error: 'Unauthorized'});
     }
 });
-
-
-app.get('/usuarios', autenticarUsuario, (req, res) => {
-
-    console.log(req.usuario.admin);
-
-    if(req.usuario.admin == 1){
-            sequelize.sequelize.query('select * from usuarios',
-        {type: sequelize.sequelize.QueryTypes.SELECT}
-        )
-        .then(resultados => {
-            res.status(200);
-            res.send(resultados);
-        });
-    }
-    else{
-        res.status(401)
-        res.json({Error: 'Unauthorized'});
-    }
-
-
-});
-
-app.get('/usuarios/:id', autenticarUsuario, (req, res) => {
-    const idUser = req.params.id;
-    sequelize.sequelize.query('select * from usuarios where id_usuario = :id ',
-    {replacements: {id: idUser}, type: sequelize.sequelize.QueryTypes.SELECT}
-    ).then(resultado => {
-        res.status(200);
-        res.send(resultado);
-    });
-});
-
-app.delete('/usuarios/:id', autenticarUsuario, (req, res) => {
-    
-    if(req.usuario.admin == 1){
-        const idUser = req.params.id;
-        sequelize.sequelize.query('delete from usuarios where id_usuario = :id',
-        { replacements: {id: idUser} } 
-        ).then(resultado => {
-            res.status(200);
-            res.send(`El usuario con id: ${idUser} se eliminó correctamente.`);
-        });
-    }
-    else{
-        res.status(401);
-        res.json({Error: 'Unauthorized'});
-    }
-});
-
-// EndPoints de productos
-
-app.get('/productos/:id', autenticarUsuario, (req, res) => {
-    const idProd = req.params.id;
-    sequelize.sequelize.query('select * from productos where id_prod = :id ',
-    {replacements: {id: idProd}, type: sequelize.sequelize.QueryTypes.SELECT}
-    ).then(resultado => {
-        res.send(resultado);
-    });
-});
-
-// EndPoints de pedidos
 
 app.get('/pedidos', autenticarUsuario, (req, res) => {
     

@@ -116,43 +116,6 @@ app.post('/usuarios/signin', (req, res) => {
 
 });
 
-app.get('/usuarios', autenticarUsuario, (req, res) => {
-
-    console.log(req.usuario.admin);
-
-    if(req.usuario.admin == 1){
-            sequelize.sequelize.query('select * from usuarios',
-        {type: sequelize.sequelize.QueryTypes.SELECT}
-        )
-        .then(resultados => {
-            res.status(200);
-            res.send(resultados);
-        });
-    }
-    else{
-        res.status(401)
-        res.json({Error: 'Unauthorized'});
-    }
-
-
-});
-
-app.delete('/usuarios', autenticarUsuario, (req, res) => {
-    
-    if(req.usuario.admin == 1){
-        sequelize.sequelize.query('delete from usuarios where id_usuario = :id',
-        { replacements: {id: req.params.id_usuario} } 
-        ).then(resultado => {
-            res.status(200);
-            res.send(`El usuario con id: ${idUser} se eliminó correctamente.`);
-        });
-    }
-    else{
-        res.status(401);
-        res.json({Error: 'Unauthorized'});
-    }
-});
-
 // CRUD DE PRODUCTOS
 
 app.get('/productos', autenticarUsuario, (req, res) => {

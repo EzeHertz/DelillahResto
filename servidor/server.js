@@ -64,7 +64,7 @@ const autenticarUsuario = (req, res, next) => {
 
 function logAccesedPath(req, res, next){
     console.log(
-        `Middleware logRequest: A las ${new Date()} usuario accedio a  la ruta ${req.path} `
+        `LogRequest: A las ${new Date()} usuario accedio a  la ruta ${req.path} `
     );
     next();
 };
@@ -89,7 +89,7 @@ app.get('/', (req, res) => {
 
 // ENDPOINTS DE USUARIO
 
-app.post('/usuarios/singup', (req, res) => {
+app.post('/usuarios/signup', (req, res) => {
     sequelize.sequelize.query(`insert into usuarios (nombreCompleto, email, tel, dirEnvio, userName, pass, esAdmin)
     values (?, ?, ?, ?, ?, ?, ?)`,
     {replacements: [req.body.nombreCompleto, req.body.email, req.body.tel, req.body.dirEnvio, req.body.userName, req.body.pass, req.body.esAdmin]}
@@ -119,7 +119,7 @@ app.post('/usuarios/signin', (req, res) => {
 // CRUD DE PRODUCTOS
 
 app.get('/productos', autenticarUsuario, (req, res) => {
-    sequelize.sequelize.query('SELECT * FROM PRODUCTOS',
+    sequelize.sequelize.query('SELECT id_prod, nombre, descripcion, precio FROM PRODUCTOS WHERE de_baja = 0',
     {type: sequelize.sequelize.QueryTypes.SELECT}
     ).then(resultado => {
         res.status(200);
@@ -127,12 +127,11 @@ app.get('/productos', autenticarUsuario, (req, res) => {
     });
 });
 
-
 app.post('/productos', autenticarUsuario, (req, res) => {
     
     if(req.usuario.admin == 1){
-        sequelize.sequelize.query(`insert into productos (nombre, descripcion, precio)
-            values (?, ?, ?)`,
+        sequelize.sequelize.query(`insert into productos (nombre, descripcion, precio, de_baja)
+            values (?, ?, ?, false)`,
         {replacements: [req.body.nombre, req.body.descripcion, req.body.precio]}
         ).then( () => {
             res.status(200);
@@ -148,11 +147,12 @@ app.post('/productos', autenticarUsuario, (req, res) => {
 
 app.delete('/productos', autenticarUsuario, (req, res) => {
     if(req.usuario.admin == 1){
-        sequelize.sequelize.query(`Delete from productos where id_prod = :id`, 
-        {replacements: {id: req.body.id_prod}}
+        const id_prod = req.body.id_prod;
+        sequelize.sequelize.query(`update productos set de_baja = 1 where id_prod = :id_prod`, 
+        {replacements: {id_prod: id_prod}}
         ).then(resultado => {
             res.status(200);
-            res.send(`Producto con id numero ${idProd} ha sido eliminado.`);
+            res.send(`Producto con id numero ${id_prod} ha sido eliminado.`);
         });
     }
     else{
@@ -183,8 +183,10 @@ app.put('/productos', autenticarUsuario, (req, res) => {
 app.post('/pedidos', autenticarUsuario, (req, res) => {
 
     try{
-        sequelize.sequelize.query(`insert into pedidos values(id_pedido, 'nuevo', ?, curdate(), ?, ?, ?)`,
-        {replacements: [req.body.cantidad, req.body.forma_pago, req.usuario.id, req.body.id_prod]}
+        sequelize.sequelize.query(`insert into pedidos
+        (id_pedido, estado, hora, forma_pago, id_usuario, id_prod, cantidad, id_prod2, cantidad2, id_prod3, cantidad3, id_prod4, cantidad4)
+         values(id_pedido, 'nuevo', curdate(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        {replacements: [req.body.forma_pago, req.usuario.id, req.body.id_prod, req.body.cantidad, req.body.id_prod2, req.body.cantidad2, req.body.id_prod3, req.body.cantidad3, req.body.id_prod4, req.body.cantidad4]}
         )
         .then(pedidoRealizado => {
             res.status(200);

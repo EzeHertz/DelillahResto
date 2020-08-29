@@ -202,7 +202,7 @@ app.put('/pedidos', autenticarUsuario, (req, res) => {
 
     if(req.usuario.admin == 1){
 
-        const idPedido = req.body.id;
+        const idPedido = req.body.id_pedido;
         sequelize.sequelize.query('update pedidos set estado = :estado where id_pedido = :id_pedido',
         {replacements: {estado: req.body.estado, id_pedido: idPedido}}
         )
@@ -240,6 +240,23 @@ app.get('/pedidos', autenticarUsuario, (req, res) => {
     };
 
 });
+
+app.delete('/pedidos', autenticarUsuario, (req, res) => {
+    
+    if(req.usuario.admin == 1){
+        sequelize.sequelize.query(`DELETE FROM PEDIDOS WHERE id_pedido = :id_pedido`,
+        {replacements: {id_pedido: req.body.id_pedido}}
+        )
+        .then(resultado => {
+            res.status(200);
+            res.send(resultado);
+        });
+    }
+    else{
+        res.status(401);
+        res.json({Error: 'Unauthorized'});
+    };
+})
 
 // Iniciar server
 app.listen(3000, () => {

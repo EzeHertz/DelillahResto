@@ -1,17 +1,4 @@
-openapi: 3.0.0
-# Added by API Auto Mocking Plugin
-servers:
-  - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/EzeHertz/DelillahRestoAPI/1.0.0
-info:
-  description: API
-  version: "1.0.0"
-  title: Delillah Resto API
-  contact:
-    email: you@your-company.com
-  license:
-    name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+https://app.swaggerhub.com/apis-docs/EzeHertz/DelillahRestoAPI/1.0.0
 
 paths:
 
@@ -163,24 +150,20 @@ paths:
             properties:
               forma_pago:
                 type: integer
-                description: Forma de pago (efectivo 1 o tarjeta 2)
+                description: Forma de pago (0/1)
                 example: 1
-              id_prod:
-                type: integer
-                description: Id del producto seleccionado
-                example: 1
-              cantidad:
-                type: integer
-                description: Cantidad del producto seleccionado
-                example: 1
-              id_prod2:
-                type: integer
-                description: Id del producto seleccionado
-                example: 2
-              cantidad2:
-                type: integer
-                description: Cantidad del producto seleccionado
-                example: 1
+              items_pedidos:
+                type: object
+                description: Array de objetos
+                properties:
+                  id_prod:
+                    type: integer
+                    description: Id del producto
+                    example: 1
+                  cantidad:
+                    type: integer
+                    description: Cantidad del producto seleccionado
+                    example: 2
       responses:
         200:
           description: Successful request

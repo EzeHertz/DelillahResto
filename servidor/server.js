@@ -182,12 +182,24 @@ app.put('/productos', autenticarUsuario, (req, res) => {
 // CRUD DE PEDIDOS
 app.post('/pedidos', autenticarUsuario, (req, res) => {
 
+    let list = req.body.items_pedido;
+    
     try{
+        
+
         sequelize.sequelize.query(`insert into pedidos
-        (id_pedido, estado, hora, forma_pago, id_usuario, id_prod, cantidad, id_prod2, cantidad2, id_prod3, cantidad3, id_prod4, cantidad4)
-         values(id_pedido, 'nuevo', curdate(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        {replacements: [req.body.forma_pago, req.usuario.id, req.body.id_prod, req.body.cantidad, req.body.id_prod2, req.body.cantidad2, req.body.id_prod3, req.body.cantidad3, req.body.id_prod4, req.body.cantidad4]}
+        (id_pedido, estado, hora, forma_pago, id_usuario) values (id_pedido, 'nuevo', curdate(), ?, ?)`,
+        {replacements: [req.body.forma_pago, req.usuario.id]}
         )
+        .then(
+        list.forEach(item => {
+            sequelize.sequelize.query(`insert into item_pedidos
+            (item_id, id_pedido, id_prod, cantidad) values (item_id, (select max(id_pedido) as id_pedido from pedidos where id_usuario = ${req.usuario.id}),
+            ?,?)`,
+            {replacements: [item.id_prod, item.cantidad]})
+        })
+        ) 
+
         .then(pedidoRealizado => {
             res.status(200);
             res.send('Pedido realizado correctamente.');
@@ -221,16 +233,23 @@ app.put('/pedidos', autenticarUsuario, (req, res) => {
 app.get('/pedidos', autenticarUsuario, (req, res) => {
     
     if(req.usuario.admin == 1){
-        sequelize.sequelize.query(`SELECT * FROM PEDIDOS`,
+        sequelize.sequelize.query(`select estado, hora, forma_pago, id_prod, cantidad, nombreCompleto, dirEnvio  from item_pedidos
+        inner join pedidos 
+        on pedidos.id_pedido = item_pedidos.id_pedido
+        inner join usuarios on usuarios.id_usuario = pedidos.id_usuario`,
         {type: sequelize.sequelize.QueryTypes.SELECT}
         )
+        
         .then(resultado => {
             res.status(200);
             res.send(resultado);
         });
     }
     else{
-        sequelize.sequelize.query(`SELECT * FROM PEDIDOS WHERE ID_USUARIO = :id_usuario`,
+        sequelize.sequelize.query(`select estado, hora, forma_pago, id_prod, cantidad, nombreCompleto, dirEnvio  from item_pedidos
+        inner join pedidos 
+        on pedidos.id_pedido = item_pedidos.id_pedido
+        inner join usuarios on usuarios.id_usuario = pedidos.id_usuario WHERE PEDIDOS.ID_USUARIO = :id_usuario`,
         {replacements: {id_usuario: req.usuario.id}, type: sequelize.sequelize.QueryTypes.SELECT}
         )
         .then(resultado => {
@@ -244,13 +263,17 @@ app.get('/pedidos', autenticarUsuario, (req, res) => {
 app.delete('/pedidos', autenticarUsuario, (req, res) => {
     
     if(req.usuario.admin == 1){
-        sequelize.sequelize.query(`DELETE FROM PEDIDOS WHERE id_pedido = :id_pedido`,
+        sequelize.sequelize.query(`DELETE FROM item_pedidos WHERE id_pedido = :id_pedido`,
         {replacements: {id_pedido: req.body.id_pedido}}
-        )
-        .then(resultado => {
-            res.status(200);
-            res.send(resultado);
-        });
+        ).then(
+            sequelize.sequelize.query(`DELETE FROM pedidos WHERE id_pedido = :id_pedido`,
+            {replacements: {id_pedido: req.body.id_pedido}}
+            )
+            .then(resultado => {
+                res.status(200);
+                res.send('Pedido eliminado correctamente.');
+            })
+        ); 
     }
     else{
         res.status(401);
